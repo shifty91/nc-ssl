@@ -35,11 +35,11 @@ which speaks SSL/TLS to the server.
 
 # Build #
 
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make -j8
-$ (sudo make install)
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make -j8
+    $ (sudo make install)
 
 # Dependencies #
 
