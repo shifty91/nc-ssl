@@ -60,13 +60,15 @@ int main(int argc, char *argv[])
     dbg("SSL connection to host %s established", host);
 
     /* select loop */
+    int stdin_closed = 0;
     while (42) {
         int rc;
         fd_set rfds;
 
         FD_ZERO(&rfds);
         FD_SET(socket, &rfds);
-        FD_SET(fileno(stdin), &rfds);
+        if (!stdin_closed)
+            FD_SET(fileno(stdin), &rfds);
 
         /* note: select might be interrupted */
         do {
@@ -83,7 +85,8 @@ int main(int argc, char *argv[])
         }
 
         /* input available -> send to server */
-        if (FD_ISSET(fileno(stdin), &rfds)) {
+        if (!stdin_closed && FD_ISSET(fileno(stdin), &rfds)) {
+            dbg("STDIN input");
             /* read buffer */
             char buffer[512];
             size_t written = 0;
@@ -93,9 +96,9 @@ int main(int argc, char *argv[])
                 log_err("read() failed %s", strerror(errno));
                 goto clean;
             }
-            if (read_ == 0) {
-                ret = EXIT_SUCCESS;
-                goto clean;
+            if (read_ == 0) {   /* EOF */
+                stdin_closed = 1;
+                goto server;
             }
 
             /* send! */
@@ -109,8 +112,10 @@ int main(int argc, char *argv[])
             } while (written < read_);
         }
 
+    server:
         /* server response available -> print to stdout */
         if (FD_ISSET(socket, &rfds)) {
+            dbg("Server output");
             do {
                 /* read! */
                 char buffer[512];
