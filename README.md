@@ -11,7 +11,7 @@ which speaks SSL/TLS to the server.
 
 # Example #
 
-    $ nc-ssl
+    $ nc-ssl www.google.de 443
     GET / HTTP/1.1
     Host: www.google.de
     Connection: Close
@@ -32,6 +32,18 @@ which speaks SSL/TLS to the server.
     Connection: close
 
     [ ... ]
+
+# Build #
+
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make -j8
+$ (sudo make install)
+
+# Dependencies #
+
+- OpenSSL
 
 # Author #
 
