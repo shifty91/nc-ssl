@@ -15,6 +15,9 @@
 static void print_usage_and_exit(void)
 {
     fprintf(stderr, "usage: nc-ssl [options] <host> <port>\n");
+    fprintf(stderr, "  options:\n");
+    fprintf(stderr, "    -d: enable debug output\n");
+    fprintf(stderr, "nc-ssl Version 1.0 (C) Kurt Kanzenbach 2015 <kurt@kmk-computers.de>\n");
     exit(EXIT_FAILURE);
 }
 
