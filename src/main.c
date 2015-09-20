@@ -5,12 +5,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/select.h>
+#include <signal.h>
 
 #include <openssl/ssl.h>
 
 #include "net.h"
 #include "config.h"
 #include "utils.h"
+
+static volatile int stop = 0;
 
 static void print_usage_and_exit(void)
 {
@@ -19,6 +22,25 @@ static void print_usage_and_exit(void)
     fprintf(stderr, "    -d: enable debug output\n");
     fprintf(stderr, "nc-ssl Version 1.0 (C) Kurt Kanzenbach 2015 <kurt@kmk-computers.de>\n");
     exit(EXIT_FAILURE);
+}
+
+static void term_handler(int sig)
+{
+    stop = 1;
+}
+
+static void setup_signals(void)
+{
+    struct sigaction sa;
+
+    sigemptyset(&sa.sa_mask);
+    sa.sa_handler = term_handler;
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGTERM, &sa, NULL))
+        err("sigaction() failed: %s", strerror(errno));
+    if (sigaction(SIGINT, &sa, NULL))
+        err("sigaction() failed: %s", strerror(errno));
 }
 
 /*
@@ -59,9 +81,12 @@ int main(int argc, char *argv[])
     ssl_connect(&ssl, &ctx, socket);
     dbg("SSL connection to host %s established", host);
 
+    /* setup signals */
+    setup_signals();
+
     /* select loop */
     int stdin_closed = 0;
-    while (42) {
+    while (!stop) {
         int rc;
         fd_set rfds;
 
@@ -73,7 +98,12 @@ int main(int argc, char *argv[])
         /* note: select might be interrupted */
         do {
             rc = select(socket + 1, &rfds, NULL, NULL, NULL);
-        } while (rc < 0 && errno == EINTR);
+        } while (rc < 0 && errno == EINTR && !stop);
+
+        if (stop) {
+            dbg("Catched SIGTERM or SIGINT, cleaning up...");
+            break;
+        }
 
         if (rc == -1) {
             log_err("select() failed: %s", strerror(errno));
@@ -143,6 +173,8 @@ int main(int argc, char *argv[])
             } while (SSL_pending(ssl));
         }
     }
+
+    ret = EXIT_SUCCESS;
 
 clean:
     dbg("Shutting down SSL connection to host %s", host);
