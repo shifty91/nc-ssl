@@ -17,6 +17,7 @@ pkg_search_module(OPENSSL REQUIRED openssl>=1.0.2)
 
 if (OPENSSL_FOUND)
   include_directories(${OPENSSL_INCLUDE_DIRS})
+  link_directories(${OPENSSL_LIBRARY_DIRS})
   message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 endif()
 
@@ -41,6 +42,7 @@ if (NOT HAVE_NETDB_H)
 endif()
 
 include_directories("src")
+
 add_executable(nc-ssl ${SRCS})
 target_link_libraries(nc-ssl ${OPENSSL_LIBRARIES})
 install(TARGETS nc-ssl DESTINATION /usr/bin COMPONENT binaries)
