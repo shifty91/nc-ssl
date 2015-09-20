@@ -6,9 +6,11 @@
 #include <errno.h>
 
 #include <openssl/err.h>
+#include <openssl/x509v3.h>
 
 #include "utils.h"
 #include "net.h"
+#include "config.h"
 
 int tcp_connect(const char *host, const char *service)
 {
@@ -50,7 +52,7 @@ int tcp_connect(const char *host, const char *service)
     return sock;
 }
 
-void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock)
+void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
 {
     if (!ssl || !ctx || sock < 0)
         err("Invalid arguments passed to %s", __func__);
@@ -67,6 +69,20 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock)
     /* use TLS */
     SSL_CTX_set_options(*ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 
+    /* Set better cipher suits */
+    const char* const PREFERRED_CIPHERS = "HIGH:MEDIUM:!RC4:!SRP:!PSK:!MD5:!aNULL@STRENGTH";
+    if (SSL_CTX_set_cipher_list(*ctx, PREFERRED_CIPHERS) != 1) {
+        log_err("Failed to set ciphers");
+        goto clean0;
+    }
+
+    /*
+     * Load root CAs.
+     * Unfortunately, this function is not documented, but it seems to work
+     * on my Linux and FreeBSD boxes.
+     */
+    SSL_CTX_set_default_verify_paths(*ctx);
+
     *ssl = SSL_new(*ctx);
     if (*ssl == NULL) {
         ERR_print_errors_fp(stderr);
@@ -80,11 +96,30 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock)
         goto clean1;
     }
 
+    /* verify certificate with hostname */
+    if (config.verify_cert) {
+        X509_VERIFY_PARAM *param;
+        param = SSL_get0_param(*ssl);
+
+        X509_VERIFY_PARAM_set_hostflags(param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
+        X509_VERIFY_PARAM_set1_host(param, host, 0);
+        SSL_set_verify(*ssl, SSL_VERIFY_PEER, 0);
+    }
+
     if (SSL_connect(*ssl) != 1) {
         ERR_print_errors_fp(stderr);
         log_err("SSL_connect() failed.");
         goto clean1;
     }
+
+    /* certificate verified? */
+    int res = SSL_get_verify_result(*ssl);
+    if (res != X509_V_OK)
+        dbg("Server's certificate not verfified: %d", res);
+    else
+        dbg("Server's certificate verified.");
+
+    dbg("SSL connection is using %s encryption", SSL_get_cipher(*ssl));
 
     return;
 
@@ -92,6 +127,7 @@ clean1:
     SSL_free(*ssl);
 clean0:
     SSL_CTX_free(*ctx);
+    close(sock);
 
     exit(EXIT_FAILURE);
 }

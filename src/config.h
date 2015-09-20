@@ -3,6 +3,7 @@
 
 struct config {
     int debug;
+    int verify_cert;
 };
 
 extern struct config config;

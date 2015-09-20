@@ -57,10 +57,13 @@ int main(int argc, char *argv[])
     char *host, *service;
 
     /* parse args */
-    while ((c = getopt(argc, argv, "d")) != -1) {
+    while ((c = getopt(argc, argv, "vd")) != -1) {
         switch (c) {
         case 'd':
             config.debug = 1;
+            break;
+        case 'v':
+            config.verify_cert = 1;
             break;
         case '?':
         default:
@@ -78,7 +81,7 @@ int main(int argc, char *argv[])
     dbg("Connected to host %s on service %s", host, service);
 
     /* ssl connect */
-    ssl_connect(&ssl, &ctx, socket);
+    ssl_connect(&ssl, &ctx, socket, host);
     dbg("SSL connection to host %s established", host);
 
     /* setup signals */
