@@ -5,6 +5,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <openssl/err.h>
+
 #include "utils.h"
 #include "net.h"
 
