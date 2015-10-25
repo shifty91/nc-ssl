@@ -66,8 +66,11 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
         err("SSL_CTX_new() failed");
     }
 
-    /* use TLS */
-    SSL_CTX_set_options(*ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+    /* set method: default: TLS */
+    if (!config.use_sslv2)
+        SSL_CTX_set_options(*ctx, SSL_OP_NO_SSLv2);
+    if (!config.use_sslv3)
+        SSL_CTX_set_options(*ctx, SSL_OP_NO_SSLv3);
 
     /* Set better cipher suits */
     const char* const PREFERRED_CIPHERS = "HIGH:MEDIUM:!RC4:!SRP:!PSK:!MD5:!aNULL@STRENGTH";

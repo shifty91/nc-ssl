@@ -20,6 +20,8 @@ static void print_usage_and_exit(void)
     fprintf(stderr, "usage: nc-ssl [options] <host> <port>\n");
     fprintf(stderr, "  options:\n");
     fprintf(stderr, "    -d: enable debug output\n");
+    fprintf(stderr, "    -2: use SSL version 2\n");
+    fprintf(stderr, "    -3: use SSL version 3\n");
     fprintf(stderr, "nc-ssl Version 1.0 (C) Kurt Kanzenbach 2015 <kurt@kmk-computers.de>\n");
     exit(EXIT_FAILURE);
 }
@@ -57,13 +59,19 @@ int main(int argc, char *argv[])
     char *host, *service;
 
     /* parse args */
-    while ((c = getopt(argc, argv, "vd")) != -1) {
+    while ((c = getopt(argc, argv, "vd23")) != -1) {
         switch (c) {
         case 'd':
             config.debug = 1;
             break;
         case 'v':
             config.verify_cert = 1;
+            break;
+        case '2':
+            config.use_sslv2 = 1;
+            break;
+        case '3':
+            config.use_sslv3 = 1;
             break;
         case '?':
         default:
