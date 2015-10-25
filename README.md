@@ -7,11 +7,16 @@ which speaks SSL/TLS to the server.
 
 # Usage #
 
-    $ nc-ssl <host> <port>
+    $ usage: nc-ssl [options] <host> <service>
+    $   options:
+    $    -d: enable debug output
+    $    -v: verify hosts's certificate
+    $    -2: use SSL version 2
+    $    -3: use SSL version 3
 
 # Example #
 
-    $ nc-ssl www.google.de 443
+    $ nc-ssl www.google.de https
     GET / HTTP/1.1
     Host: www.google.de
     Connection: Close
