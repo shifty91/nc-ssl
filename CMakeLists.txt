@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(get)
+project(nc-ssl)
 
 set(SRCS
   src/main.c
