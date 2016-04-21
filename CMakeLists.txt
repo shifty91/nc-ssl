@@ -45,4 +45,4 @@ include_directories("src")
 
 add_executable(nc-ssl ${SRCS})
 target_link_libraries(nc-ssl ${OPENSSL_LIBRARIES})
-install(TARGETS nc-ssl DESTINATION /usr/bin COMPONENT binaries)
+install(TARGETS nc-ssl DESTINATION bin COMPONENT binaries)
