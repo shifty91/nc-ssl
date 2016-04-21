@@ -8,7 +8,7 @@ set(SRCS
   src/utils.c
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -pedantic -Wall -march=native")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -pedantic -Wall -march=native -Wno-gnu-zero-variadic-macro-arguments")
 set(CMAKE_BUILD_TYPE "Release")
 
 # Search OpenSSL
