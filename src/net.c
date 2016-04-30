@@ -63,7 +63,7 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     *ctx = SSL_CTX_new(SSLv23_client_method());
     if (*ctx == NULL) {
         ERR_print_errors_fp(stderr);
-        err("SSL_CTX_new() failed");
+        serr("SSL_CTX_new() failed");
     }
 
     /* set method: default: TLS */
@@ -75,7 +75,7 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     /* Set better cipher suits */
     const char* const PREFERRED_CIPHERS = "HIGH:MEDIUM:!RC4:!SRP:!PSK:!MD5:!aNULL@STRENGTH";
     if (SSL_CTX_set_cipher_list(*ctx, PREFERRED_CIPHERS) != 1) {
-        log_err("Failed to set ciphers");
+        log_serr("Failed to set ciphers");
         goto clean0;
     }
 
@@ -89,13 +89,13 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     *ssl = SSL_new(*ctx);
     if (*ssl == NULL) {
         ERR_print_errors_fp(stderr);
-        log_err("SSL_new() failed.");
+        log_serr("SSL_new() failed.");
         goto clean0;
     }
 
     if (!SSL_set_fd(*ssl, sock)) {
         ERR_print_errors_fp(stderr);
-        log_err("SSL_set_fd() failed.");
+        log_serr("SSL_set_fd() failed.");
         goto clean1;
     }
 
@@ -111,7 +111,7 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
 
     if (SSL_connect(*ssl) != 1) {
         ERR_print_errors_fp(stderr);
-        log_err("SSL_connect() failed.");
+        log_serr("SSL_connect() failed.");
         goto clean1;
     }
 
@@ -120,7 +120,7 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     if (res != X509_V_OK)
         dbg("Server's certificate not verfified: %d", res);
     else
-        dbg("Server's certificate verified.");
+        sdbg("Server's certificate verified.");
 
     dbg("SSL connection is using %s encryption", SSL_get_cipher(*ssl));
 

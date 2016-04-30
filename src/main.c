@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
         } while (rc < 0 && errno == EINTR && !stop);
 
         if (stop) {
-            dbg("Catched SIGTERM or SIGINT, cleaning up...");
+            sdbg("Catched SIGTERM or SIGINT, cleaning up...");
             break;
         }
 
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 
         /* input available -> send to server */
         if (!stdin_closed && FD_ISSET(fileno(stdin), &rfds)) {
-            dbg("STDIN input");
+            sdbg("STDIN input");
             /* read buffer */
             char buffer[512];
             size_t written = 0;
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
             do {
                 int tmp = SSL_write(ssl, buffer + written, read_ - written);
                 if (tmp < 0) {
-                    log_err("SSL_write() failed");
+                    log_serr("SSL_write() failed");
                     goto clean;
                 }
                 written += tmp;
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     server:
         /* server response available -> print to stdout */
         if (FD_ISSET(socket, &rfds)) {
-            dbg("Server output");
+            sdbg("Server output");
             do {
                 /* read! */
                 char buffer[512];
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
                 int read = SSL_read(ssl, buffer, sizeof(buffer));
 
                 if (read < 0) {
-                    log_err("SSL_read() failed");
+                    log_serr("SSL_read() failed");
                     goto clean;
                 }
                 if (read == 0) {
