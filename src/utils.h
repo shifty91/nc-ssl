@@ -33,8 +33,4 @@
     } while (0)
 #define sinfo(str) info("%s", str)
 
-/* functions */
-void *kurt_malloc(size_t size);
-void kurt_free(void **ptr);
-
 #endif /* _UTILS_H_ */
