@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <openssl/err.h>
 #include <openssl/x509v3.h>
@@ -11,6 +13,34 @@
 #include "utils.h"
 #include "net.h"
 #include "config.h"
+
+static inline
+void print_ip(const struct addrinfo *sa)
+{
+    char addr[INET6_ADDRSTRLEN + 1];
+    const char *res = NULL;
+
+    if (!sa)
+        err("Invalid arguments passed to %s", __func__);
+
+    switch (sa->ai_family) {
+    case AF_INET6:
+        res = inet_ntop(AF_INET6, &(((struct sockaddr_in6*)sa->ai_addr)->sin6_addr),
+                        addr, sizeof(addr));
+        break;
+    case AF_INET:
+        res = inet_ntop(AF_INET, &(((struct sockaddr_in*)sa->ai_addr)->sin_addr),
+                        addr, sizeof(addr));
+        break;
+    }
+
+    if (!res) {
+        dbg("inet_ntop() failed: %s", strerror(errno));
+        return;
+    }
+
+    dbg("Remote IP '%s'", addr);
+}
 
 int tcp_connect(const char *host, const char *service)
 {
@@ -37,8 +67,10 @@ int tcp_connect(const char *host, const char *service)
             err("socket() failed: %s", strerror(errno));
         }
 
-        if (!connect(sock, sa->ai_addr, sa->ai_addrlen))
+        if (!connect(sock, sa->ai_addr, sa->ai_addrlen)) {
+            print_ip(sa);
             break;
+        }
 
         close(sock);
     }
