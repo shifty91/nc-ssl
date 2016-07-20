@@ -23,7 +23,7 @@ __attribute__((noreturn)) static void print_usage_and_exit(void)
     fprintf(stderr, "    -v: verify hosts's certificate\n");
     fprintf(stderr, "    -2: use SSL version 2\n");
     fprintf(stderr, "    -3: use SSL version 3\n");
-    fprintf(stderr, "nc-ssl Version 1.2 (C) Kurt Kanzenbach 2015 <kurt@kmk-computers.de>\n");
+    fprintf(stderr, "nc-ssl Version 1.3 (C) Kurt Kanzenbach 2015 <kurt@kmk-computers.de>\n");
     exit(EXIT_FAILURE);
 }
 
