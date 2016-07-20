@@ -84,6 +84,13 @@ int tcp_connect(const char *host, const char *service)
     return sock;
 }
 
+#define SSL_ERROR(msg, label)                   \
+    do {                                        \
+        log_serr(msg);                          \
+        ERR_print_errors_fp(stderr);            \
+        goto label;                             \
+    } while (0)
+
 void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
 {
     if (!ssl || !ctx || sock < 0)
@@ -105,7 +112,7 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
         SSL_CTX_set_options(*ctx, SSL_OP_NO_SSLv3);
 
     /* Set better cipher suits */
-    const char* const PREFERRED_CIPHERS = "HIGH:MEDIUM:!RC4:!SRP:!PSK:!MD5:!aNULL@STRENGTH";
+    static const char * const PREFERRED_CIPHERS = "HIGH:MEDIUM:!RC4:!SRP:!PSK:!MD5:!aNULL@STRENGTH";
     if (SSL_CTX_set_cipher_list(*ctx, PREFERRED_CIPHERS) != 1) {
         log_serr("Failed to set ciphers");
         goto clean0;
@@ -119,17 +126,11 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     SSL_CTX_set_default_verify_paths(*ctx);
 
     *ssl = SSL_new(*ctx);
-    if (*ssl == NULL) {
-        ERR_print_errors_fp(stderr);
-        log_serr("SSL_new() failed.");
-        goto clean0;
-    }
+    if (*ssl == NULL)
+        SSL_ERROR("SSL_new() failed:", clean0);
 
-    if (!SSL_set_fd(*ssl, sock)) {
-        ERR_print_errors_fp(stderr);
-        log_serr("SSL_set_fd() failed.");
-        goto clean1;
-    }
+    if (!SSL_set_fd(*ssl, sock))
+        SSL_ERROR("SSL_set_fd() failed:", clean1);
 
     /* verify certificate with hostname */
     if (config.verify_cert) {
@@ -141,11 +142,8 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
         SSL_set_verify(*ssl, SSL_VERIFY_PEER, 0);
     }
 
-    if (SSL_connect(*ssl) != 1) {
-        ERR_print_errors_fp(stderr);
-        log_serr("SSL_connect() failed.");
-        goto clean1;
-    }
+    if (SSL_connect(*ssl) != 1)
+        SSL_ERROR("SSL_connect() failed:", clean1);
 
     /* certificate verified? */
     long res = SSL_get_verify_result(*ssl);
