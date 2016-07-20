@@ -29,6 +29,7 @@ __attribute__((noreturn)) static void print_usage_and_exit(void)
 
 static void term_handler(int sig)
 {
+    (void)sig;
     stop = 1;
 }
 
@@ -44,6 +45,25 @@ static void setup_signals(void)
         err("sigaction() failed: %s", strerror(errno));
     if (sigaction(SIGINT, &sa, NULL))
         err("sigaction() failed: %s", strerror(errno));
+}
+
+static const char *ssl_strerror(const SSL * const ssl, int ret)
+{
+    int code = SSL_get_error(ssl, ret);
+#define _(code) case code: return #code
+    switch (code) {
+        _(SSL_ERROR_NONE);
+        _(SSL_ERROR_ZERO_RETURN);
+        _(SSL_ERROR_WANT_READ);
+        _(SSL_ERROR_WANT_WRITE);
+        _(SSL_ERROR_WANT_CONNECT);
+        _(SSL_ERROR_WANT_ACCEPT);
+        _(SSL_ERROR_WANT_X509_LOOKUP);
+        _(SSL_ERROR_SYSCALL);
+        _(SSL_ERROR_SSL);
+    }
+#undef _
+    return "Unknown SSL error ocurred";
 }
 
 /*
@@ -147,7 +167,7 @@ int main(int argc, char *argv[])
             do {
                 int tmp = SSL_write(ssl, buffer + written, bytes - written);
                 if (tmp < 0) {
-                    log_serr("SSL_write() failed");
+                    log_err("SSL_write() failed: %s", ssl_strerror(ssl, tmp));
                     goto clean;
                 }
                 written += tmp;
@@ -165,7 +185,7 @@ int main(int argc, char *argv[])
                 int read = SSL_read(ssl, buffer, sizeof(buffer));
 
                 if (read < 0) {
-                    log_serr("SSL_read() failed");
+                    log_err("SSL_read() failed: %s", ssl_strerror(ssl, read));
                     goto clean;
                 }
                 if (read == 0) {
