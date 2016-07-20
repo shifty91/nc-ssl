@@ -15,7 +15,7 @@
 
 static volatile int stop = 0;
 
-static void print_usage_and_exit(void)
+__attribute__((noreturn)) static void print_usage_and_exit(void)
 {
     fprintf(stderr, "usage: nc-ssl [options] <host> <service>\n");
     fprintf(stderr, "  options:\n");
@@ -131,27 +131,27 @@ int main(int argc, char *argv[])
             sdbg("STDIN input");
             /* read buffer */
             char buffer[512];
-            size_t written = 0;
-            ssize_t read_ = read(0, buffer, sizeof(buffer));
+            ssize_t written = 0;
+            ssize_t bytes = read(fileno(stdin), buffer, sizeof(buffer));
 
-            if (read_ < 0) {
-                log_err("read() failed %s", strerror(errno));
+            if (bytes < 0) {
+                log_err("read() failed: %s", strerror(errno));
                 goto clean;
             }
-            if (read_ == 0) {   /* EOF */
+            if (bytes == 0) {   /* EOF */
                 stdin_closed = 1;
                 goto server;
             }
 
             /* send! */
             do {
-                int tmp = SSL_write(ssl, buffer + written, read_ - written);
+                int tmp = SSL_write(ssl, buffer + written, bytes - written);
                 if (tmp < 0) {
                     log_serr("SSL_write() failed");
                     goto clean;
                 }
                 written += tmp;
-            } while (written < read_);
+            } while (written < bytes);
         }
 
     server:
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
             do {
                 /* read! */
                 char buffer[512];
-                size_t written = 0;
+                int written = 0;
                 int read = SSL_read(ssl, buffer, sizeof(buffer));
 
                 if (read < 0) {

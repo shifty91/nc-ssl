@@ -148,9 +148,9 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     }
 
     /* certificate verified? */
-    int res = SSL_get_verify_result(*ssl);
+    long res = SSL_get_verify_result(*ssl);
     if (res != X509_V_OK)
-        dbg("Server's certificate not verfified: %d", res);
+        dbg("Server's certificate not verfified: %ld", res);
     else
         sdbg("Server's certificate verified.");
 
