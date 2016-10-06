@@ -5,14 +5,11 @@ set(SRCS
   src/main.c
   src/config.c
   src/net.c
+  src/utils.c
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -march=native")
 set(CMAKE_BUILD_TYPE "Release")
-
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-gnu-zero-variadic-macro-arguments")
-endif()
 
 # Search OpenSSL
 find_package(PkgConfig REQUIRED)

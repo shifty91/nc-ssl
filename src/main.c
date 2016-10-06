@@ -42,9 +42,9 @@ static void setup_signals(void)
     sa.sa_flags = 0;
 
     if (sigaction(SIGTERM, &sa, NULL))
-        err("sigaction() failed: %s", strerror(errno));
+        err_errno("sigaction() failed");
     if (sigaction(SIGINT, &sa, NULL))
-        err("sigaction() failed: %s", strerror(errno));
+        err_errno("sigaction() failed");
 }
 
 static const char *ssl_strerror(const SSL * const ssl, int ret)
@@ -133,12 +133,12 @@ int main(int argc, char *argv[])
         } while (rc < 0 && errno == EINTR && !stop);
 
         if (stop) {
-            sdbg("Catched SIGTERM or SIGINT, cleaning up...");
+            dbg("Catched SIGTERM or SIGINT, cleaning up...");
             break;
         }
 
         if (rc == -1) {
-            log_err("select() failed: %s", strerror(errno));
+            log_err_errno("select() failed");
             goto clean;
         }
         if (rc == 0) {
@@ -148,14 +148,14 @@ int main(int argc, char *argv[])
 
         /* input available -> send to server */
         if (!stdin_closed && FD_ISSET(fileno(stdin), &rfds)) {
-            sdbg("STDIN input");
+            dbg("STDIN input");
             /* read buffer */
             char buffer[512];
             ssize_t written = 0;
             ssize_t bytes = read(fileno(stdin), buffer, sizeof(buffer));
 
             if (bytes < 0) {
-                log_err("read() failed: %s", strerror(errno));
+                log_err_errno("read() failed");
                 goto clean;
             }
             if (bytes == 0) {   /* EOF */
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
     server:
         /* server response available -> print to stdout */
         if (FD_ISSET(socket, &rfds)) {
-            sdbg("Server output");
+            dbg("Server output");
             do {
                 /* read! */
                 char buffer[512];
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
                 do {
                     ssize_t tmp = write(fileno(stdout), buffer + written, read - written);
                     if (tmp < 0) {
-                        log_err("write() failed: %s", strerror(errno));
+                        log_err_errno("write() failed");
                         goto clean;
                     }
                     written += tmp;

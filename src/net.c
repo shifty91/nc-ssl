@@ -35,7 +35,7 @@ void print_ip(const struct addrinfo *sa)
     }
 
     if (!res) {
-        dbg("inet_ntop() failed: %s", strerror(errno));
+        dbg_errno("inet_ntop() failed");
         return;
     }
 
@@ -64,7 +64,7 @@ int tcp_connect(const char *host, const char *service)
         sock = socket(sa->ai_family, sa->ai_socktype, sa->ai_protocol);
         if (sock < 0) {
             freeaddrinfo(sa_head);
-            err("socket() failed: %s", strerror(errno));
+            err_errno("socket() failed: %s");
         }
 
         if (!connect(sock, sa->ai_addr, sa->ai_addrlen)) {
@@ -76,8 +76,8 @@ int tcp_connect(const char *host, const char *service)
     }
 
     if (!sa)
-        err("connect() for host %s on service %s failed: %s", host, service,
-            strerror(errno));
+        err_errno("connect() for host %s on service %s failed: %s", host,
+                  service);
 
     freeaddrinfo(sa_head);
 
@@ -86,7 +86,7 @@ int tcp_connect(const char *host, const char *service)
 
 #define SSL_ERROR(msg, label)                   \
     do {                                        \
-        log_serr(msg);                          \
+        log_err(msg);                           \
         ERR_print_errors_fp(stderr);            \
         goto label;                             \
     } while (0)
@@ -102,7 +102,7 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     *ctx = SSL_CTX_new(SSLv23_client_method());
     if (*ctx == NULL) {
         ERR_print_errors_fp(stderr);
-        serr("SSL_CTX_new() failed");
+        err("SSL_CTX_new() failed");
     }
 
     /* set method: default: TLS */
@@ -114,7 +114,7 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     /* Set better cipher suits */
     static const char * const PREFERRED_CIPHERS = "HIGH:MEDIUM:!RC4:!SRP:!PSK:!MD5:!aNULL@STRENGTH";
     if (SSL_CTX_set_cipher_list(*ctx, PREFERRED_CIPHERS) != 1) {
-        log_serr("Failed to set ciphers");
+        log_err("Failed to set ciphers");
         goto clean0;
     }
 
@@ -150,7 +150,7 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
     if (res != X509_V_OK)
         dbg("Server's certificate not verfified: %ld", res);
     else
-        sdbg("Server's certificate verified.");
+        dbg("Server's certificate verified.");
 
     dbg("SSL connection is using %s encryption", SSL_get_cipher(*ssl));
 

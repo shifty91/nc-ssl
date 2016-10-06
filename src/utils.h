@@ -8,34 +8,48 @@
 #include "config.h"
 
 /* printing */
-#define err(fmt, ...)                                                   \
+#define err(...)                                                        \
     do {                                                                \
-        fprintf(stderr, "[ERROR %s:%d]: " fmt "\n", basename(__FILE__), \
-                __LINE__,  ##__VA_ARGS__);                              \
-        exit(EXIT_FAILURE);                                             \
+        _log("ERROR", 1, 0, basename(__FILE__), __LINE__, __VA_ARGS__); \
     } while (0)
-#define serr(str) err("%s", str)
 
-#define log_err(fmt, ...)                                               \
+#define log_err(...)                                                    \
     do {                                                                \
-        fprintf(stderr, "[ERROR %s:%d]: " fmt "\n", basename(__FILE__), \
-                __LINE__,  ##__VA_ARGS__);                              \
+        _log("ERROR", 0, 0, basename(__FILE__), __LINE__, __VA_ARGS__); \
     } while (0)
-#define log_serr(str) log_err("%s", str)
 
-#define dbg(fmt, ...)                                                   \
+#define err_errno(...)                                                  \
     do {                                                                \
-        if (config.debug)                                               \
-            printf("[DEBUG %s:%d]: " fmt "\n", basename(__FILE__),      \
-                   __LINE__,  ##__VA_ARGS__);                           \
+        _log("ERROR", 1, 1, basename(__FILE__), __LINE__, __VA_ARGS__); \
     } while (0)
-#define sdbg(str) dbg("%s", str)
 
-#define info(fmt, ...)                                                  \
+#define log_err_errno(...)                                              \
     do {                                                                \
-        printf("[INFO %s:%d]: " fmt "\n", basename(__FILE__), __LINE__, \
-               ##__VA_ARGS__);                                          \
+        _log("ERROR", 0, 1, basename(__FILE__), __LINE__, __VA_ARGS__); \
     } while (0)
-#define sinfo(str) info("%s", str)
+
+#define info(...)                                                       \
+    do {                                                                \
+        _log("INFO", 0, 0, basename(__FILE__), __LINE__, __VA_ARGS__);  \
+    } while (0)
+
+#define unlikely(x) __builtin_expect((x), 0)
+
+#define dbg(...)                                                        \
+    do {                                                                \
+        if (unlikely(config.debug))                                     \
+            _log("DEBUG", 0, 0, basename(__FILE__), __LINE__,           \
+                 __VA_ARGS__);                                          \
+    } while (0)
+
+#define dbg_errno(...)                                                  \
+    do {                                                                \
+        if (unlikely(config.debug))                                     \
+            _log("DEBUG", 0, 1, basename(__FILE__), __LINE__,           \
+                 __VA_ARGS__);                                          \
+    } while (0)
+
+void _log(const char * restrict level, int die, int with_errno,
+          const char * restrict file, int line, const char * restrict fmt, ...);
 
 #endif /* _UTILS_H_ */
