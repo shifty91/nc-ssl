@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.2)
 project(nc-ssl)
 
 set(SRCS
@@ -9,19 +9,12 @@ set(SRCS
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -Wall -march=native")
-set(CMAKE_BUILD_TYPE "Release")
 
-# Search OpenSSL
+# Search for OpenSSL
 find_package(PkgConfig REQUIRED)
 pkg_search_module(OPENSSL REQUIRED openssl>=1.0.2)
 
-if (OPENSSL_FOUND)
-  include_directories(${OPENSSL_INCLUDE_DIRS})
-  link_directories(${OPENSSL_LIBRARY_DIRS})
-  message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
-endif()
-
-# search for Linux headers
+# Search for Linux headers
 include(CheckIncludeFiles)
 check_include_files("sys/select.h" HAVE_SELECT_H)
 check_include_files("sys/types.h" HAVE_TYPES_H)
@@ -41,8 +34,15 @@ if (NOT HAVE_NETDB_H)
   message(FATAL_ERROR "netdb.h not found")
 endif()
 
-include_directories("src")
-
+# Add binary
 add_executable(nc-ssl ${SRCS})
-target_link_libraries(nc-ssl ${OPENSSL_LIBRARIES})
+target_include_directories(nc-ssl PRIVATE "src")
+
+# Build against OpenSSL
+target_include_directories(nc-ssl PRIVATE ${OPENSSL_INCLUDE_DIRS})
+target_link_libraries(nc-ssl PRIVATE ${OPENSSL_LIBRARIES})
+link_directories(${OPENSSL_LIBRARY_DIRS})
+message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+
+# Provide an install target
 install(TARGETS nc-ssl DESTINATION bin COMPONENT binaries)
