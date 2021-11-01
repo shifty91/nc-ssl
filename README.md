@@ -1,9 +1,9 @@
 # NC-SSL #
 
 Ever wanted to use nc for connections over SSL (like HTTPS)? Well it won't work.
-You need to use different tools such as openssl sclient or socat. To me these tools
-have strange cmd line options, so I ended up with a really simple netcat utility
-which speaks SSL/TLS to the server.
+You need to use different tools such as openssl sclient or socat. To me these
+tools have strange cmd line options, so I ended up with a really simple netcat
+utility which speaks SSL/TLS to the server.
 
 # Usage #
 
@@ -52,7 +52,7 @@ which speaks SSL/TLS to the server.
 
 # Author #
 
-(C) Kurt Kanzenbach 2015 <kurt@kmk-computers.de>
+(C) Kurt Kanzenbach 2015-2016,2021 <kurt@kmk-computers.de>
 
 # License #
 
