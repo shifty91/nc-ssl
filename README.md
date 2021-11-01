@@ -10,7 +10,7 @@ utility which speaks SSL/TLS to the server.
     $ usage: nc-ssl [options] <host> <service>
     $   options:
     $    -d: enable debug output
-    $    -v: verify hosts's certificate
+    $    -v: verify host's certificate
     $    -2: use SSL version 2
     $    -3: use SSL version 3
 
@@ -42,7 +42,7 @@ utility which speaks SSL/TLS to the server.
 
     $ mkdir build
     $ cd build
-    $ cmake ..
+    $ cmake -DCMAKE_BUILD_TYPE=Release ..
     $ make -j8
     $ (sudo make install)
 
