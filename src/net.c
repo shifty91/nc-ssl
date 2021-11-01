@@ -142,6 +142,9 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
         SSL_set_verify(*ssl, SSL_VERIFY_PEER, 0);
     }
 
+    if (!SSL_set_tlsext_host_name(*ssl, host))
+        SSL_ERROR("SSL_set_tlsext_host_name() failed:", clean1);
+
     if (SSL_connect(*ssl) != 1)
         SSL_ERROR("SSL_connect() failed:", clean1);
 
