@@ -123,11 +123,6 @@ void ssl_connect(SSL **ssl, SSL_CTX **ctx, int sock, const char *host)
         goto clean0;
     }
 
-    /*
-     * Load root CAs.
-     * Unfortunately, this function is not documented, but it seems to work
-     * on my Linux and FreeBSD boxes.
-     */
     SSL_CTX_set_default_verify_paths(*ctx);
 
     *ssl = SSL_new(*ctx);
