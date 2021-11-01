@@ -56,4 +56,4 @@ which speaks SSL/TLS to the server.
 
 # License #
 
-GPL v3
+GPL v2+
